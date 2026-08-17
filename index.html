@@ -17,6 +17,7 @@
             --warning: #f59e0b;
             --danger: #ef4444;
             --border: #374151;
+            --today-bg: #1e3a8a;
         }
 
         * {
@@ -178,6 +179,11 @@
             border-radius: 0.75rem;
             padding: 1.4rem;
         }
+        
+        .card.today-highlight {
+            background: linear-gradient(145deg, var(--bg-card) 0%, rgba(59, 130, 246, 0.15) 100%);
+            border: 1px solid var(--primary);
+        }
 
         .card h3 {
             color: var(--text-muted);
@@ -207,8 +213,8 @@
             transition: width 0.3s ease;
         }
 
-        /* Subject Accordion */
-        .subject-group {
+        /* Subject Accordion & Day List */
+        .subject-group, .day-group {
             background-color: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 0.6rem;
@@ -267,6 +273,46 @@
             text-decoration: line-through;
             color: var(--accent);
             opacity: 0.75;
+        }
+        
+        .day-row {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.4rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .day-row:last-child {
+            border-bottom: none;
+        }
+        
+        .day-row.is-today {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--primary);
+        }
+
+        .day-col-date {
+            width: 140px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .day-col-topic {
+            flex: 1;
+            font-size: 0.95rem;
+        }
+        
+        .day-col-topic span.subj {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 2px;
+        }
+        
+        .day-col-status {
+            width: 60px;
+            text-align: right;
         }
 
         /* Formula Vault */
@@ -340,9 +386,10 @@
             🚀 GATE '27 ChemEng
         </div>
         <div class="nav-link active" onclick="switchTab('dashboard')">📊 Dashboard</div>
-        <div class="nav-link" onclick="switchTab('tracker')">📚 Detailed Syllabus</div>
+        <div class="nav-link" onclick="switchTab('schedule')">📅 Daily Schedule</div>
+        <div class="nav-link" onclick="switchTab('tracker')">📚 Subject Tracker</div>
         <div class="nav-link" onclick="switchTab('vault')">🖼️ Formula Vault</div>
-        <div class="nav-link" onclick="switchTab('settings')">⚙️ Sync & API Settings</div>
+        <div class="nav-link" onclick="switchTab('settings')">⚙️ Sync Settings</div>
 
         <div class="sync-card">
             <div>
@@ -365,11 +412,26 @@
                     <p style="color: var(--text-muted); font-size: 0.9rem;">137-Day Complete Syllabus Plan (Aug 17 – Dec 31)</p>
                 </div>
                 <button class="btn btn-success" onclick="syncNow()">
-                    🔄 Synchronize with Google Sheet
+                    🔄 Synchronize
                 </button>
             </div>
             
             <div class="grid-cards">
+                <!-- Today Target Card -->
+                <div class="card today-highlight" style="grid-column: 1 / -1;">
+                    <h3 style="color: var(--primary); font-weight: bold;">🎯 Today's Target (<span id="today-date-str"></span>)</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem;">
+                        <div>
+                            <div style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;" id="today-subject">--</div>
+                            <div class="value" id="today-topic" style="font-size: 1.5rem;">--</div>
+                            <div style="color: var(--accent); font-size: 0.9rem; margin-top: 0.5rem;" id="today-strategy">--</div>
+                        </div>
+                        <div id="today-action-area">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <h3>Countdown to GATE 2027</h3>
                     <div class="value" id="countdown">-- Days</div>
@@ -382,11 +444,6 @@
                         <div class="progress-fill" id="progress-bar"></div>
                     </div>
                 </div>
-                <div class="card">
-                    <h3>Today's Study Allocation</h3>
-                    <div class="value" id="today-day" style="font-size: 1.35rem; margin-bottom: 0.3rem;">--</div>
-                    <p id="today-strategy" style="color: var(--accent); font-size: 0.88rem; font-weight: 500;"></p>
-                </div>
             </div>
 
             <div class="card" style="margin-top: 1rem;">
@@ -397,26 +454,37 @@
             </div>
         </div>
 
-        <!-- 2. TRACKER (137 TOPICS) -->
+        <!-- 2. DAILY SCHEDULE VIEW -->
+        <div id="schedule" class="view-section">
+            <div class="top-header">
+                <div>
+                    <h2>137-Day Master Schedule</h2>
+                    <p style="color: var(--text-muted); font-size: 0.88rem;">Scroll to see exactly what to study each day.</p>
+                </div>
+            </div>
+            <div class="day-group" id="calendar-container">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- 3. TRACKER (BY SUBJECT) -->
         <div id="tracker" class="view-section">
             <div class="top-header">
                 <div>
-                    <h2>137-Day Detailed Syllabus Tracker</h2>
-                    <p style="color: var(--text-muted); font-size: 0.88rem;">Check topics as you complete them. Changes save locally immediately with <strong>zero API cost</strong>.</p>
+                    <h2>Syllabus Tracker (By Subject)</h2>
+                    <p style="color: var(--text-muted); font-size: 0.88rem;">Check topics as you complete them.</p>
                 </div>
-                <button class="btn btn-success" onclick="syncNow()">🔄 Push/Pull Sync</button>
             </div>
             <div id="syllabus-container"></div>
         </div>
 
-        <!-- 3. FORMULA VAULT -->
+        <!-- 4. FORMULA VAULT -->
         <div id="vault" class="view-section">
             <div class="top-header">
                 <div>
                     <h2>Formula & Screenshot Vault</h2>
                     <p style="color: var(--text-muted); font-size: 0.88rem;">Save screenshots of formulas, derivations, or critical error logs.</p>
                 </div>
-                <button class="btn btn-success" onclick="syncNow()">🔄 Sync Vault</button>
             </div>
             
             <div style="display: flex; gap: 1rem; flex-wrap: wrap; background: var(--bg-card); padding: 1.25rem; border-radius: 0.75rem; border: 1px solid var(--border);">
@@ -429,20 +497,13 @@
             <div class="notes-grid" id="notes-container"></div>
         </div>
 
-        <!-- 4. SETTINGS & SHEETDB API -->
+        <!-- 5. SETTINGS & SHEETDB API -->
         <div id="settings" class="view-section">
-            <h2>Cloud Sync & API Quota Manager</h2>
-            <p style="color: var(--text-muted); margin: 0.5rem 0 1.8rem 0; font-size: 0.9rem;">
-                All actions run 100% locally in your browser. API calls only occur when you explicitly click the <strong>Synchronize</strong> button.
-            </p>
-
-            <div class="card" style="max-width: 650px;">
+            <h2>Cloud Sync Settings</h2>
+            <div class="card" style="max-width: 650px; margin-top: 1rem;">
                 <div style="margin-bottom: 1.5rem;">
                     <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem;">SheetDB API Endpoint URL</label>
-                    <input type="text" id="sheetdb-endpoint" placeholder="https://sheetdb.io/api/v1/3j9mw7jd782of" style="width: 100%;">
-                    <small style="color: var(--text-muted); display: block; margin-top: 0.4rem;">
-                        Connect to the downloaded Excel sheet uploaded to Google Drive.
-                    </small>
+                    <input type="text" id="sheetdb-endpoint" placeholder="https://sheetdb.io/api/v1/your_api_id" style="width: 100%;">
                 </div>
 
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
@@ -459,10 +520,11 @@
     </div>
 
     <script>
-        // --- 1. Master Detailed Syllabus (All 137 Topics) ---
+        // Data Payloads
         const masterSyllabus = {"Process Calculations": ["Units, Dimensions & Stoichiometry", "Material Balance (Non-reactive) I", "Material Balance (Non-reactive) II", "Material Balance (Reactive Systems)", "Recycle, Bypass, and Purge Streams", "Energy Balance Basics", "Heat of Reaction, Formation & Combustion", "Advanced PYQs & Consolidation", "Subject Mock Test & Analysis"], "Thermodynamics": ["Intro & 1st Law of Thermodynamics", "P-V-T Behavior (Equations of State)", "2nd Law, Heat Engines & Entropy", "Thermodynamic Relations I (Maxwell)", "Thermodynamic Relations II", "Flow Processes (Compressors/Turbines)", "Solution Thermo (Partial Molar Properties)", "Fugacity, Activity & Standard States", "Phase Equilibria (VLE) I", "Phase Equilibria (VLE) II (Raoult's/Modified)", "Chemical Reaction Equilibria I", "Chemical Reaction Equilibria II", "Subject Revision & PYQ Marathon", "Subject Mock Test & Analysis"], "Fluid Mechanics": ["Fluid Statics & Manometry", "Newtonian & Non-Newtonian Fluids", "Continuity & Momentum Equations", "Bernoulli's Equation & Applications", "Flow through Pipes (Laminar & Hagen-Poiseuille)", "Flow through Pipes (Turbulent & Friction Factor)", "Flow Past Immersed Bodies (Drag)", "Boundary Layer Theory", "Flow Measurement (Orifice, Venturi, Pitot)", "Fluidization Basics & Ergun Equation", "Pumps (Centrifugal & Cavitation)", "Compressors & Fans", "Subject Revision & PYQ Marathon", "Subject Mock Test & Analysis"], "Mechanical Operations": ["Particle Size, Shape & Screening", "Size Reduction (Laws & Equipment)", "Filtration I (Constant P & V)", "Filtration II & Centrifugation", "Settling, Sedimentation & Elutriation", "Mixing & Agitation", "Subject Mock Test & Analysis"], "Heat Transfer": ["Conduction (1D & Unsteady State)", "Extended Surfaces (Fins)", "Convection (Free & Forced)", "Dimensional Analysis in HT", "Boundary Layer in Heat Transfer", "Heat Exchangers (LMTD Method)", "Heat Exchangers (NTU-Effectiveness)", "Boiling & Condensation", "Radiation I (Basic Laws)", "Radiation II (View Factors & Shields)", "Evaporators (Single Effect)", "Multi-effect Evaporators", "Subject Revision & PYQ Marathon", "Subject Mock Test & Analysis"], "Mass Transfer": ["Fick's Law & Molecular Diffusion", "Diffusivity in Gases & Liquids", "Mass Transfer Coefficients", "Interphase Mass Transfer & Two-Film Theory", "Distillation (VLE & Flash)", "Distillation (McCabe-Thiele) I", "Distillation (McCabe-Thiele) II", "Distillation (Ponchon-Savarit & Advanced)", "Absorption & Stripping I (Equilibrium)", "Absorption & Stripping II (Packed Towers)", "Liquid-Liquid Extraction", "Solid-Liquid Extraction (Leaching)", "Adsorption (Isotherms)", "Drying I (Rate Curves)", "Drying II (Time of Drying)", "Humidification & Cooling Towers", "Subject Revision & PYQ Marathon", "Subject Mock Test & Analysis"], "Chemical Reaction Engg": ["Kinetics, Rate Laws & Mechanisms", "Constant & Variable Volume Batch Reactors", "Ideal Reactors (CSTR)", "Ideal Reactors (PFR)", "Comparison of Reactors & Size Sequencing", "Multiple Reactions (Parallel)", "Multiple Reactions (Series & Optimal Yield)", "Temperature & Pressure Effects", "Non-Ideal Flow (RTD Theory) I", "Non-Ideal Flow (RTD Models) II", "Solid-Catalyzed Reactions & Adsorption", "Catalyst Properties (Pore Volume, Surface Area)", "Internal & External Diffusion Limits", "Shrinking Core Model I", "Shrinking Core Model II", "Subject Revision & PYQ Marathon", "Subject Mock Test 1", "Subject Mock Test 2 & Deep Analysis"], "Process Dynamics & Control": ["Laplace Transforms & Deviation Variables", "1st Order Systems (Response)", "Interacting & Non-Interacting Systems", "2nd Order Systems (Damping)", "Controllers (P, PI, PID) & Hardware", "Closed-Loop Transfer Functions & Block Diagrams", "Stability Criteria (Routh-Hurwitz)", "Root Locus Technique", "Frequency Response (Bode Plot)", "Advanced Control (Cascade, Feedforward)", "Subject Revision & PYQ Marathon", "Subject Mock Test & Analysis"], "Plant Design & Economics": ["Plant Design Basics & Layout", "Cost Estimation (Equipment & Plant)", "Time Value of Money (Interest, Annuity)", "Depreciation Methods", "Profitability Analysis I (ROI, Payback)", "Profitability Analysis II (NPV, DCFR)", "Optimization", "Subject Mock Test & Analysis"], "Chemical Technology": ["Inorganic (Acids, Fertilizers)", "Chlor-Alkali & Cement Industries", "Pulp & Paper, Sugar & Starch", "Petroleum Refining I (Distillation)", "Petroleum Refining II (Cracking/Reforming)", "Petrochemicals", "Polymerization (Addition & Condensation)"], "Engg Mathematics": ["Linear Algebra (Matrices & Rank)", "Linear Algebra (Eigenvalues & Eigenvectors)", "Calculus (Limits, Continuity, Max/Min)", "Vector Calculus (Gradient, Divergence, Curl)", "Differential Equations (First Order)", "Differential Equations (Higher Order & PDE)", "Complex Variables", "Probability & Statistics", "Numerical Methods"], "General Aptitude & Wrap-up": ["General Aptitude (Quantitative I)", "General Aptitude (Quantitative II & Spatial)", "General Aptitude (Verbal & Logical)", "Full Length Mock Test 1 (Morning Shift)", "Mock Test 1 Deep Analysis & Weakness Targeting", "Full Length Mock Test 2", "Final Formulas Review & Buffer"]};
+        const dailyCalendar = [{"dayNum": 1, "date": "2026-08-17", "displayDate": "17 Aug 2026 (Mon)", "subject": "Process Calculations", "topic": "Units, Dimensions & Stoichiometry", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 2, "date": "2026-08-18", "displayDate": "18 Aug 2026 (Tue)", "subject": "Process Calculations", "topic": "Material Balance (Non-reactive) I", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 3, "date": "2026-08-19", "displayDate": "19 Aug 2026 (Wed)", "subject": "Process Calculations", "topic": "Material Balance (Non-reactive) II", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 4, "date": "2026-08-20", "displayDate": "20 Aug 2026 (Thu)", "subject": "Process Calculations", "topic": "Material Balance (Reactive Systems)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 5, "date": "2026-08-21", "displayDate": "21 Aug 2026 (Fri)", "subject": "Process Calculations", "topic": "Recycle, Bypass, and Purge Streams", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 6, "date": "2026-08-22", "displayDate": "22 Aug 2026 (Sat)", "subject": "Process Calculations", "topic": "Energy Balance Basics", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 7, "date": "2026-08-23", "displayDate": "23 Aug 2026 (Sun)", "subject": "Process Calculations", "topic": "Heat of Reaction, Formation & Combustion", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 8, "date": "2026-08-24", "displayDate": "24 Aug 2026 (Mon)", "subject": "Process Calculations", "topic": "Advanced PYQs & Consolidation", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 9, "date": "2026-08-25", "displayDate": "25 Aug 2026 (Tue)", "subject": "Process Calculations", "topic": "Subject Mock Test & Analysis", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 10, "date": "2026-08-26", "displayDate": "26 Aug 2026 (Wed)", "subject": "Thermodynamics", "topic": "Intro & 1st Law of Thermodynamics", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 11, "date": "2026-08-27", "displayDate": "27 Aug 2026 (Thu)", "subject": "Thermodynamics", "topic": "P-V-T Behavior (Equations of State)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 12, "date": "2026-08-28", "displayDate": "28 Aug 2026 (Fri)", "subject": "Thermodynamics", "topic": "2nd Law, Heat Engines & Entropy", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 13, "date": "2026-08-29", "displayDate": "29 Aug 2026 (Sat)", "subject": "Thermodynamics", "topic": "Thermodynamic Relations I (Maxwell)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 14, "date": "2026-08-30", "displayDate": "30 Aug 2026 (Sun)", "subject": "Thermodynamics", "topic": "Thermodynamic Relations II", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 15, "date": "2026-08-31", "displayDate": "31 Aug 2026 (Mon)", "subject": "Thermodynamics", "topic": "Flow Processes (Compressors/Turbines)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 16, "date": "2026-09-01", "displayDate": "01 Sep 2026 (Tue)", "subject": "Thermodynamics", "topic": "Solution Thermo (Partial Molar Properties)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 17, "date": "2026-09-02", "displayDate": "02 Sep 2026 (Wed)", "subject": "Thermodynamics", "topic": "Fugacity, Activity & Standard States", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 18, "date": "2026-09-03", "displayDate": "03 Sep 2026 (Thu)", "subject": "Thermodynamics", "topic": "Phase Equilibria (VLE) I", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 19, "date": "2026-09-04", "displayDate": "04 Sep 2026 (Fri)", "subject": "Thermodynamics", "topic": "Phase Equilibria (VLE) II (Raoult's/Modified)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 20, "date": "2026-09-05", "displayDate": "05 Sep 2026 (Sat)", "subject": "Thermodynamics", "topic": "Chemical Reaction Equilibria I", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 21, "date": "2026-09-06", "displayDate": "06 Sep 2026 (Sun)", "subject": "Thermodynamics", "topic": "Chemical Reaction Equilibria II", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 22, "date": "2026-09-07", "displayDate": "07 Sep 2026 (Mon)", "subject": "Thermodynamics", "topic": "Subject Revision & PYQ Marathon", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 23, "date": "2026-09-08", "displayDate": "08 Sep 2026 (Tue)", "subject": "Thermodynamics", "topic": "Subject Mock Test & Analysis", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 24, "date": "2026-09-09", "displayDate": "09 Sep 2026 (Wed)", "subject": "Fluid Mechanics", "topic": "Fluid Statics & Manometry", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 25, "date": "2026-09-10", "displayDate": "10 Sep 2026 (Thu)", "subject": "Fluid Mechanics", "topic": "Newtonian & Non-Newtonian Fluids", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 26, "date": "2026-09-11", "displayDate": "11 Sep 2026 (Fri)", "subject": "Fluid Mechanics", "topic": "Continuity & Momentum Equations", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 27, "date": "2026-09-12", "displayDate": "12 Sep 2026 (Sat)", "subject": "Fluid Mechanics", "topic": "Bernoulli's Equation & Applications", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 28, "date": "2026-09-13", "displayDate": "13 Sep 2026 (Sun)", "subject": "Fluid Mechanics", "topic": "Flow through Pipes (Laminar & Hagen-Poiseuille)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 29, "date": "2026-09-14", "displayDate": "14 Sep 2026 (Mon)", "subject": "Fluid Mechanics", "topic": "Flow through Pipes (Turbulent & Friction Factor)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 30, "date": "2026-09-15", "displayDate": "15 Sep 2026 (Tue)", "subject": "Fluid Mechanics", "topic": "Flow Past Immersed Bodies (Drag)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 31, "date": "2026-09-16", "displayDate": "16 Sep 2026 (Wed)", "subject": "Fluid Mechanics", "topic": "Boundary Layer Theory", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 32, "date": "2026-09-17", "displayDate": "17 Sep 2026 (Thu)", "subject": "Fluid Mechanics", "topic": "Flow Measurement (Orifice, Venturi, Pitot)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 33, "date": "2026-09-18", "displayDate": "18 Sep 2026 (Fri)", "subject": "Fluid Mechanics", "topic": "Fluidization Basics & Ergun Equation", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 34, "date": "2026-09-19", "displayDate": "19 Sep 2026 (Sat)", "subject": "Fluid Mechanics", "topic": "Pumps (Centrifugal & Cavitation)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 35, "date": "2026-09-20", "displayDate": "20 Sep 2026 (Sun)", "subject": "Fluid Mechanics", "topic": "Compressors & Fans", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 36, "date": "2026-09-21", "displayDate": "21 Sep 2026 (Mon)", "subject": "Fluid Mechanics", "topic": "Subject Revision & PYQ Marathon", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 37, "date": "2026-09-22", "displayDate": "22 Sep 2026 (Tue)", "subject": "Fluid Mechanics", "topic": "Subject Mock Test & Analysis", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 38, "date": "2026-09-23", "displayDate": "23 Sep 2026 (Wed)", "subject": "Mechanical Operations", "topic": "Particle Size, Shape & Screening", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 39, "date": "2026-09-24", "displayDate": "24 Sep 2026 (Thu)", "subject": "Mechanical Operations", "topic": "Size Reduction (Laws & Equipment)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 40, "date": "2026-09-25", "displayDate": "25 Sep 2026 (Fri)", "subject": "Mechanical Operations", "topic": "Filtration I (Constant P & V)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 41, "date": "2026-09-26", "displayDate": "26 Sep 2026 (Sat)", "subject": "Mechanical Operations", "topic": "Filtration II & Centrifugation", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 42, "date": "2026-09-27", "displayDate": "27 Sep 2026 (Sun)", "subject": "Mechanical Operations", "topic": "Settling, Sedimentation & Elutriation", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 43, "date": "2026-09-28", "displayDate": "28 Sep 2026 (Mon)", "subject": "Mechanical Operations", "topic": "Mixing & Agitation", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 44, "date": "2026-09-29", "displayDate": "29 Sep 2026 (Tue)", "subject": "Mechanical Operations", "topic": "Subject Mock Test & Analysis", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 45, "date": "2026-09-30", "displayDate": "30 Sep 2026 (Wed)", "subject": "Heat Transfer", "topic": "Conduction (1D & Unsteady State)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 46, "date": "2026-10-01", "displayDate": "01 Oct 2026 (Thu)", "subject": "Heat Transfer", "topic": "Extended Surfaces (Fins)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 47, "date": "2026-10-02", "displayDate": "02 Oct 2026 (Fri)", "subject": "Heat Transfer", "topic": "Convection (Free & Forced)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 48, "date": "2026-10-03", "displayDate": "03 Oct 2026 (Sat)", "subject": "Heat Transfer", "topic": "Dimensional Analysis in HT", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 49, "date": "2026-10-04", "displayDate": "04 Oct 2026 (Sun)", "subject": "Heat Transfer", "topic": "Boundary Layer in Heat Transfer", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 50, "date": "2026-10-05", "displayDate": "05 Oct 2026 (Mon)", "subject": "Heat Transfer", "topic": "Heat Exchangers (LMTD Method)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 51, "date": "2026-10-06", "displayDate": "06 Oct 2026 (Tue)", "subject": "Heat Transfer", "topic": "Heat Exchangers (NTU-Effectiveness)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 52, "date": "2026-10-07", "displayDate": "07 Oct 2026 (Wed)", "subject": "Heat Transfer", "topic": "Boiling & Condensation", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 53, "date": "2026-10-08", "displayDate": "08 Oct 2026 (Thu)", "subject": "Heat Transfer", "topic": "Radiation I (Basic Laws)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 54, "date": "2026-10-09", "displayDate": "09 Oct 2026 (Fri)", "subject": "Heat Transfer", "topic": "Radiation II (View Factors & Shields)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 55, "date": "2026-10-10", "displayDate": "10 Oct 2026 (Sat)", "subject": "Heat Transfer", "topic": "Evaporators (Single Effect)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 56, "date": "2026-10-11", "displayDate": "11 Oct 2026 (Sun)", "subject": "Heat Transfer", "topic": "Multi-effect Evaporators", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 57, "date": "2026-10-12", "displayDate": "12 Oct 2026 (Mon)", "subject": "Heat Transfer", "topic": "Subject Revision & PYQ Marathon", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 58, "date": "2026-10-13", "displayDate": "13 Oct 2026 (Tue)", "subject": "Heat Transfer", "topic": "Subject Mock Test & Analysis", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 59, "date": "2026-10-14", "displayDate": "14 Oct 2026 (Wed)", "subject": "Mass Transfer", "topic": "Fick's Law & Molecular Diffusion", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 60, "date": "2026-10-15", "displayDate": "15 Oct 2026 (Thu)", "subject": "Mass Transfer", "topic": "Diffusivity in Gases & Liquids", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 61, "date": "2026-10-16", "displayDate": "16 Oct 2026 (Fri)", "subject": "Mass Transfer", "topic": "Mass Transfer Coefficients", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 62, "date": "2026-10-17", "displayDate": "17 Oct 2026 (Sat)", "subject": "Mass Transfer", "topic": "Interphase Mass Transfer & Two-Film Theory", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 63, "date": "2026-10-18", "displayDate": "18 Oct 2026 (Sun)", "subject": "Mass Transfer", "topic": "Distillation (VLE & Flash)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 64, "date": "2026-10-19", "displayDate": "19 Oct 2026 (Mon)", "subject": "Mass Transfer", "topic": "Distillation (McCabe-Thiele) I", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 65, "date": "2026-10-20", "displayDate": "20 Oct 2026 (Tue)", "subject": "Mass Transfer", "topic": "Distillation (McCabe-Thiele) II", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 66, "date": "2026-10-21", "displayDate": "21 Oct 2026 (Wed)", "subject": "Mass Transfer", "topic": "Distillation (Ponchon-Savarit & Advanced)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 67, "date": "2026-10-22", "displayDate": "22 Oct 2026 (Thu)", "subject": "Mass Transfer", "topic": "Absorption & Stripping I (Equilibrium)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 68, "date": "2026-10-23", "displayDate": "23 Oct 2026 (Fri)", "subject": "Mass Transfer", "topic": "Absorption & Stripping II (Packed Towers)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 69, "date": "2026-10-24", "displayDate": "24 Oct 2026 (Sat)", "subject": "Mass Transfer", "topic": "Liquid-Liquid Extraction", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 70, "date": "2026-10-25", "displayDate": "25 Oct 2026 (Sun)", "subject": "Mass Transfer", "topic": "Solid-Liquid Extraction (Leaching)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 71, "date": "2026-10-26", "displayDate": "26 Oct 2026 (Mon)", "subject": "Mass Transfer", "topic": "Adsorption (Isotherms)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 72, "date": "2026-10-27", "displayDate": "27 Oct 2026 (Tue)", "subject": "Mass Transfer", "topic": "Drying I (Rate Curves)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 73, "date": "2026-10-28", "displayDate": "28 Oct 2026 (Wed)", "subject": "Mass Transfer", "topic": "Drying II (Time of Drying)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 74, "date": "2026-10-29", "displayDate": "29 Oct 2026 (Thu)", "subject": "Mass Transfer", "topic": "Humidification & Cooling Towers", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 75, "date": "2026-10-30", "displayDate": "30 Oct 2026 (Fri)", "subject": "Mass Transfer", "topic": "Subject Revision & PYQ Marathon", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 76, "date": "2026-10-31", "displayDate": "31 Oct 2026 (Sat)", "subject": "Mass Transfer", "topic": "Subject Mock Test & Analysis", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 77, "date": "2026-11-01", "displayDate": "01 Nov 2026 (Sun)", "subject": "Chemical Reaction Engg", "topic": "Kinetics, Rate Laws & Mechanisms", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 78, "date": "2026-11-02", "displayDate": "02 Nov 2026 (Mon)", "subject": "Chemical Reaction Engg", "topic": "Constant & Variable Volume Batch Reactors", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 79, "date": "2026-11-03", "displayDate": "03 Nov 2026 (Tue)", "subject": "Chemical Reaction Engg", "topic": "Ideal Reactors (CSTR)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 80, "date": "2026-11-04", "displayDate": "04 Nov 2026 (Wed)", "subject": "Chemical Reaction Engg", "topic": "Ideal Reactors (PFR)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 81, "date": "2026-11-05", "displayDate": "05 Nov 2026 (Thu)", "subject": "Chemical Reaction Engg", "topic": "Comparison of Reactors & Size Sequencing", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 82, "date": "2026-11-06", "displayDate": "06 Nov 2026 (Fri)", "subject": "Chemical Reaction Engg", "topic": "Multiple Reactions (Parallel)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 83, "date": "2026-11-07", "displayDate": "07 Nov 2026 (Sat)", "subject": "Chemical Reaction Engg", "topic": "Multiple Reactions (Series & Optimal Yield)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 84, "date": "2026-11-08", "displayDate": "08 Nov 2026 (Sun)", "subject": "Chemical Reaction Engg", "topic": "Temperature & Pressure Effects", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 85, "date": "2026-11-09", "displayDate": "09 Nov 2026 (Mon)", "subject": "Chemical Reaction Engg", "topic": "Non-Ideal Flow (RTD Theory) I", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 86, "date": "2026-11-10", "displayDate": "10 Nov 2026 (Tue)", "subject": "Chemical Reaction Engg", "topic": "Non-Ideal Flow (RTD Models) II", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 87, "date": "2026-11-11", "displayDate": "11 Nov 2026 (Wed)", "subject": "Chemical Reaction Engg", "topic": "Solid-Catalyzed Reactions & Adsorption", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 88, "date": "2026-11-12", "displayDate": "12 Nov 2026 (Thu)", "subject": "Chemical Reaction Engg", "topic": "Catalyst Properties (Pore Volume, Surface Area)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 89, "date": "2026-11-13", "displayDate": "13 Nov 2026 (Fri)", "subject": "Chemical Reaction Engg", "topic": "Internal & External Diffusion Limits", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 90, "date": "2026-11-14", "displayDate": "14 Nov 2026 (Sat)", "subject": "Chemical Reaction Engg", "topic": "Shrinking Core Model I", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 91, "date": "2026-11-15", "displayDate": "15 Nov 2026 (Sun)", "subject": "Chemical Reaction Engg", "topic": "Shrinking Core Model II", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 92, "date": "2026-11-16", "displayDate": "16 Nov 2026 (Mon)", "subject": "Chemical Reaction Engg", "topic": "Subject Revision & PYQ Marathon", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 93, "date": "2026-11-17", "displayDate": "17 Nov 2026 (Tue)", "subject": "Chemical Reaction Engg", "topic": "Subject Mock Test 1", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 94, "date": "2026-11-18", "displayDate": "18 Nov 2026 (Wed)", "subject": "Chemical Reaction Engg", "topic": "Subject Mock Test 2 & Deep Analysis", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 95, "date": "2026-11-19", "displayDate": "19 Nov 2026 (Thu)", "subject": "Process Dynamics & Control", "topic": "Laplace Transforms & Deviation Variables", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 96, "date": "2026-11-20", "displayDate": "20 Nov 2026 (Fri)", "subject": "Process Dynamics & Control", "topic": "1st Order Systems (Response)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 97, "date": "2026-11-21", "displayDate": "21 Nov 2026 (Sat)", "subject": "Process Dynamics & Control", "topic": "Interacting & Non-Interacting Systems", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 98, "date": "2026-11-22", "displayDate": "22 Nov 2026 (Sun)", "subject": "Process Dynamics & Control", "topic": "2nd Order Systems (Damping)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 99, "date": "2026-11-23", "displayDate": "23 Nov 2026 (Mon)", "subject": "Process Dynamics & Control", "topic": "Controllers (P, PI, PID) & Hardware", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 100, "date": "2026-11-24", "displayDate": "24 Nov 2026 (Tue)", "subject": "Process Dynamics & Control", "topic": "Closed-Loop Transfer Functions & Block Diagrams", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 101, "date": "2026-11-25", "displayDate": "25 Nov 2026 (Wed)", "subject": "Process Dynamics & Control", "topic": "Stability Criteria (Routh-Hurwitz)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 102, "date": "2026-11-26", "displayDate": "26 Nov 2026 (Thu)", "subject": "Process Dynamics & Control", "topic": "Root Locus Technique", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 103, "date": "2026-11-27", "displayDate": "27 Nov 2026 (Fri)", "subject": "Process Dynamics & Control", "topic": "Frequency Response (Bode Plot)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 104, "date": "2026-11-28", "displayDate": "28 Nov 2026 (Sat)", "subject": "Process Dynamics & Control", "topic": "Advanced Control (Cascade, Feedforward)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 105, "date": "2026-11-29", "displayDate": "29 Nov 2026 (Sun)", "subject": "Process Dynamics & Control", "topic": "Subject Revision & PYQ Marathon", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 106, "date": "2026-11-30", "displayDate": "30 Nov 2026 (Mon)", "subject": "Process Dynamics & Control", "topic": "Subject Mock Test & Analysis", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 107, "date": "2026-12-01", "displayDate": "01 Dec 2026 (Tue)", "subject": "Plant Design & Economics", "topic": "Plant Design Basics & Layout", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 108, "date": "2026-12-02", "displayDate": "02 Dec 2026 (Wed)", "subject": "Plant Design & Economics", "topic": "Cost Estimation (Equipment & Plant)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 109, "date": "2026-12-03", "displayDate": "03 Dec 2026 (Thu)", "subject": "Plant Design & Economics", "topic": "Time Value of Money (Interest, Annuity)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 110, "date": "2026-12-04", "displayDate": "04 Dec 2026 (Fri)", "subject": "Plant Design & Economics", "topic": "Depreciation Methods", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 111, "date": "2026-12-05", "displayDate": "05 Dec 2026 (Sat)", "subject": "Plant Design & Economics", "topic": "Profitability Analysis I (ROI, Payback)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 112, "date": "2026-12-06", "displayDate": "06 Dec 2026 (Sun)", "subject": "Plant Design & Economics", "topic": "Profitability Analysis II (NPV, DCFR)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 113, "date": "2026-12-07", "displayDate": "07 Dec 2026 (Mon)", "subject": "Plant Design & Economics", "topic": "Optimization", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 114, "date": "2026-12-08", "displayDate": "08 Dec 2026 (Tue)", "subject": "Plant Design & Economics", "topic": "Subject Mock Test & Analysis", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 115, "date": "2026-12-09", "displayDate": "09 Dec 2026 (Wed)", "subject": "Chemical Technology", "topic": "Inorganic (Acids, Fertilizers)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 116, "date": "2026-12-10", "displayDate": "10 Dec 2026 (Thu)", "subject": "Chemical Technology", "topic": "Chlor-Alkali & Cement Industries", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 117, "date": "2026-12-11", "displayDate": "11 Dec 2026 (Fri)", "subject": "Chemical Technology", "topic": "Pulp & Paper, Sugar & Starch", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 118, "date": "2026-12-12", "displayDate": "12 Dec 2026 (Sat)", "subject": "Chemical Technology", "topic": "Petroleum Refining I (Distillation)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 119, "date": "2026-12-13", "displayDate": "13 Dec 2026 (Sun)", "subject": "Chemical Technology", "topic": "Petroleum Refining II (Cracking/Reforming)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 120, "date": "2026-12-14", "displayDate": "14 Dec 2026 (Mon)", "subject": "Chemical Technology", "topic": "Petrochemicals", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 121, "date": "2026-12-15", "displayDate": "15 Dec 2026 (Tue)", "subject": "Chemical Technology", "topic": "Polymerization (Addition & Condensation)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 122, "date": "2026-12-16", "displayDate": "16 Dec 2026 (Wed)", "subject": "Engg Mathematics", "topic": "Linear Algebra (Matrices & Rank)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 123, "date": "2026-12-17", "displayDate": "17 Dec 2026 (Thu)", "subject": "Engg Mathematics", "topic": "Linear Algebra (Eigenvalues & Eigenvectors)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 124, "date": "2026-12-18", "displayDate": "18 Dec 2026 (Fri)", "subject": "Engg Mathematics", "topic": "Calculus (Limits, Continuity, Max/Min)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 125, "date": "2026-12-19", "displayDate": "19 Dec 2026 (Sat)", "subject": "Engg Mathematics", "topic": "Vector Calculus (Gradient, Divergence, Curl)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 126, "date": "2026-12-20", "displayDate": "20 Dec 2026 (Sun)", "subject": "Engg Mathematics", "topic": "Differential Equations (First Order)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 127, "date": "2026-12-21", "displayDate": "21 Dec 2026 (Mon)", "subject": "Engg Mathematics", "topic": "Differential Equations (Higher Order & PDE)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 128, "date": "2026-12-22", "displayDate": "22 Dec 2026 (Tue)", "subject": "Engg Mathematics", "topic": "Complex Variables", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 129, "date": "2026-12-23", "displayDate": "23 Dec 2026 (Wed)", "subject": "Engg Mathematics", "topic": "Probability & Statistics", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 130, "date": "2026-12-24", "displayDate": "24 Dec 2026 (Thu)", "subject": "Engg Mathematics", "topic": "Numerical Methods", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 131, "date": "2026-12-25", "displayDate": "25 Dec 2026 (Fri)", "subject": "General Aptitude & Wrap-up", "topic": "General Aptitude (Quantitative I)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 132, "date": "2026-12-26", "displayDate": "26 Dec 2026 (Sat)", "subject": "General Aptitude & Wrap-up", "topic": "General Aptitude (Quantitative II & Spatial)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 133, "date": "2026-12-27", "displayDate": "27 Dec 2026 (Sun)", "subject": "General Aptitude & Wrap-up", "topic": "General Aptitude (Verbal & Logical)", "hours": "7 Hours", "strategy": "3H Video Lectures (1.25x) | 2.5H Practice/Workbooks | 1.5H Mock/Revision"}, {"dayNum": 134, "date": "2026-12-28", "displayDate": "28 Dec 2026 (Mon)", "subject": "General Aptitude & Wrap-up", "topic": "Full Length Mock Test 1 (Morning Shift)", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 135, "date": "2026-12-29", "displayDate": "29 Dec 2026 (Tue)", "subject": "General Aptitude & Wrap-up", "topic": "Mock Test 1 Deep Analysis & Weakness Targeting", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 136, "date": "2026-12-30", "displayDate": "30 Dec 2026 (Wed)", "subject": "General Aptitude & Wrap-up", "topic": "Full Length Mock Test 2", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}, {"dayNum": 137, "date": "2026-12-31", "displayDate": "31 Dec 2026 (Thu)", "subject": "General Aptitude & Wrap-up", "topic": "Final Formulas Review & Buffer", "hours": "3 Hours", "strategy": "2H Video Lectures (1.5x) | 1H GATE PYQ Practice"}];
 
-        // --- 2. Local State Management ---
+        // Local State
         let state = JSON.parse(localStorage.getItem('gatePrepDetailedState')) || {
             apiUrl: '',
             completedTopics: [],
@@ -485,22 +547,13 @@
             }
         }
 
-        // --- 3. App Initialization ---
+        // Initialization
         function initApp() {
             // Countdown
             const target = new Date("2027-02-01").getTime();
             const now = new Date().getTime();
             const days = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
             document.getElementById('countdown').innerText = days + " Days";
-
-            // Today's Strategy
-            const today = new Date().getDay();
-            const isWeekend = today === 0 || today === 6;
-            const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-            document.getElementById('today-day').innerText = dayNames[today];
-            document.getElementById('today-strategy').innerText = isWeekend 
-                ? "7-Hour Weekend: 3H Video (1.25x) | 2.5H Practice | 1.5H Mock/Revision" 
-                : "3-Hour Weekday: 2H Video (1.5x) | 1H GATE PYQ Practice";
 
             if (state.apiUrl) {
                 document.getElementById('sheetdb-endpoint').value = state.apiUrl;
@@ -509,56 +562,14 @@
             }
 
             renderTracker();
+            renderCalendar();
             renderVault();
             updateUI();
         }
 
-        // --- 4. Render Syllabus (All 137 topics) ---
-        function renderTracker() {
-            const container = document.getElementById('syllabus-container');
-            container.innerHTML = '';
-
-            for (const [subject, topics] of Object.entries(masterSyllabus)) {
-                const completedInSub = topics.filter(t => state.completedTopics.includes(`${subject}::${t}`)).length;
-                
-                const group = document.createElement('div');
-                group.className = 'subject-group';
-                group.innerHTML = `
-                    <div class="subject-header" onclick="this.parentElement.classList.toggle('open')">
-                        <span>${subject}</span>
-                        <span style="color: var(--text-muted); font-size: 0.85rem;">${completedInSub} / ${topics.length} Done</span>
-                    </div>
-                    <div class="topic-list">
-                        ${topics.map(t => {
-                            const id = `${subject}::${t}`;
-                            const isChecked = state.completedTopics.includes(id);
-                            return `
-                                <div class="topic-item ${isChecked ? 'completed' : ''}">
-                                    <input type="checkbox" onchange="toggleTopic('${id}', this)" ${isChecked ? 'checked' : ''}>
-                                    <label>${t}</label>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                `;
-                container.appendChild(group);
-            }
-        }
-
-        // Checkbox click: 100% LOCAL. ZERO API calls.
-        function toggleTopic(id, checkbox) {
-            if (checkbox.checked) {
-                if (!state.completedTopics.includes(id)) state.completedTopics.push(id);
-                checkbox.parentElement.classList.add('completed');
-            } else {
-                state.completedTopics = state.completedTopics.filter(t => t !== id);
-                checkbox.parentElement.classList.remove('completed');
-            }
-            saveLocalState(true);
-            renderTracker();
-        }
-
+        // Core UI Update logic
         function updateUI() {
+            // 1. Progress Stats
             let total = 0;
             for (let s in masterSyllabus) total += masterSyllabus[s].length;
             const completed = state.completedTopics.length;
@@ -571,7 +582,49 @@
                 ? "⚠️ Unsynced changes pending" 
                 : "✅ Fully synced";
 
-            // Subject summary cards
+            // 2. Today's Highlight
+            // Get current date string (YYYY-MM-DD) formatted locally
+            const todayDateObj = new Date();
+            // Pad month and day
+            const mm = String(todayDateObj.getMonth() + 1).padStart(2, '0');
+            const dd = String(todayDateObj.getDate()).padStart(2, '0');
+            const yyyy = todayDateObj.getFullYear();
+            const todayStr = `${yyyy}-${mm}-${dd}`;
+
+            // Find matching day in schedule
+            const todayTarget = dailyCalendar.find(d => d.date === todayStr);
+
+            if (todayTarget) {
+                document.getElementById('today-date-str').innerText = todayTarget.displayDate;
+                document.getElementById('today-subject').innerText = todayTarget.subject;
+                document.getElementById('today-topic').innerText = todayTarget.topic;
+                document.getElementById('today-strategy').innerText = `🕒 ${todayTarget.hours}: ${todayTarget.strategy}`;
+
+                const topicId = `${todayTarget.subject}::${todayTarget.topic}`;
+                const isCompleted = state.completedTopics.includes(topicId);
+
+                if (isCompleted) {
+                    document.getElementById('today-action-area').innerHTML = `
+                        <button class="btn btn-outline" style="color: var(--accent); border-color: var(--accent); cursor: default;">
+                            ✅ Completed
+                        </button>
+                    `;
+                } else {
+                    document.getElementById('today-action-area').innerHTML = `
+                        <button class="btn btn-success" onclick="markTopicComplete('${topicId}')">
+                            Mark as Done
+                        </button>
+                    `;
+                }
+            } else {
+                document.getElementById('today-date-str').innerText = todayStr;
+                document.getElementById('today-subject').innerText = "Schedule";
+                document.getElementById('today-topic').innerText = "No assigned topic for today or off-schedule.";
+                document.getElementById('today-strategy').innerText = "";
+                document.getElementById('today-action-area').innerHTML = "";
+            }
+
+            // 3. Subject summary cards
             const summaryContainer = document.getElementById('dashboard-subject-summary');
             if (summaryContainer) {
                 summaryContainer.innerHTML = '';
@@ -593,9 +646,107 @@
                     summaryContainer.appendChild(item);
                 }
             }
+            
+            // 4. Update Checkboxes in Calendar and Tracker
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                const id = cb.getAttribute('data-topic-id');
+                if (id) {
+                    cb.checked = state.completedTopics.includes(id);
+                    if (cb.checked) {
+                        cb.closest('.topic-item, .day-row').classList.add('completed');
+                    } else {
+                        cb.closest('.topic-item, .day-row').classList.remove('completed');
+                    }
+                }
+            });
         }
 
-        // --- 5. Formula Vault ---
+        // Mark complete from Dashboard
+        function markTopicComplete(topicId) {
+            if (!state.completedTopics.includes(topicId)) {
+                state.completedTopics.push(topicId);
+                saveLocalState(true);
+            }
+        }
+
+        // General toggle from checkbox
+        function toggleTopic(id, checkbox) {
+            if (checkbox.checked) {
+                if (!state.completedTopics.includes(id)) state.completedTopics.push(id);
+            } else {
+                state.completedTopics = state.completedTopics.filter(t => t !== id);
+            }
+            saveLocalState(true);
+        }
+
+        // Render Calendar List
+        function renderCalendar() {
+            const container = document.getElementById('calendar-container');
+            container.innerHTML = '';
+            
+            const todayDateObj = new Date();
+            const mm = String(todayDateObj.getMonth() + 1).padStart(2, '0');
+            const dd = String(todayDateObj.getDate()).padStart(2, '0');
+            const yyyy = todayDateObj.getFullYear();
+            const todayStr = `${yyyy}-${mm}-${dd}`;
+
+            dailyCalendar.forEach(day => {
+                const topicId = `${day.subject}::${day.topic}`;
+                const isToday = day.date === todayStr;
+                
+                const row = document.createElement('div');
+                row.className = `day-row ${isToday ? 'is-today' : ''}`;
+                row.innerHTML = `
+                    <div class="day-col-date">
+                        Day ${day.dayNum}<br>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">${day.displayDate}</span>
+                    </div>
+                    <div class="day-col-topic">
+                        <span class="subj">${day.subject}</span>
+                        ${day.topic}
+                    </div>
+                    <div class="day-col-status">
+                        <input type="checkbox" data-topic-id="${topicId}" onchange="toggleTopic('${topicId}', this)" style="width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: var(--primary);">
+                    </div>
+                `;
+                container.appendChild(row);
+                
+                if (isToday) {
+                    // Auto-scroll logic could be added here if desired.
+                }
+            });
+        }
+
+        // Render Subject Tracker
+        function renderTracker() {
+            const container = document.getElementById('syllabus-container');
+            container.innerHTML = '';
+
+            for (const [subject, topics] of Object.entries(masterSyllabus)) {
+                const group = document.createElement('div');
+                group.className = 'subject-group';
+                group.innerHTML = `
+                    <div class="subject-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>${subject}</span>
+                        <span class="sub-counter" style="color: var(--text-muted); font-size: 0.85rem;"></span>
+                    </div>
+                    <div class="topic-list">
+                        ${topics.map(t => {
+                            const id = `${subject}::${t}`;
+                            return `
+                                <div class="topic-item">
+                                    <input type="checkbox" data-topic-id="${id}" onchange="toggleTopic('${id}', this)">
+                                    <label>${t}</label>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                container.appendChild(group);
+            }
+        }
+
+        // Formula Vault
         function renderVault() {
             const container = document.getElementById('notes-container');
             container.innerHTML = '';
@@ -679,7 +830,7 @@
             document.getElementById('img-modal').style.display = 'flex';
         }
 
-        // --- 6. Manual Synchronize Engine (Minimal API usage) ---
+        // Settings / Sync
         function saveSettings() {
             state.apiUrl = document.getElementById('sheetdb-endpoint').value.trim();
             saveLocalState(false);
@@ -692,15 +843,16 @@
 
         async function syncNow() {
             if (!state.apiUrl) {
-                alert("Please go to 'Sync & API Settings' and enter your SheetDB URL first.");
+                alert("Please go to 'Sync Settings' and enter your SheetDB URL first.");
                 return;
             }
 
             const btn = event ? event.target : null;
+            const originalText = btn ? btn.innerText : '';
             if (btn) btn.innerText = "⏳ Syncing...";
 
             try {
-                // 1. GET request (1 API call) to pull any updates from Google Sheet
+                // GET requests
                 const res = await fetch(`${state.apiUrl}?sheet=syllabus_progress`);
                 if (res.ok) {
                     const remoteTopics = await res.json();
@@ -714,7 +866,6 @@
                     }
                 }
 
-                // 2. Fetch Vault notes from sheet if available
                 const vaultRes = await fetch(`${state.apiUrl}?sheet=formula_vault`);
                 if (vaultRes.ok) {
                     const vData = await vaultRes.json();
@@ -734,13 +885,11 @@
 
                 state.hasUnsyncedChanges = false;
                 saveLocalState(false);
-                renderTracker();
-                renderVault();
-                alert("✅ Synchronization complete! All data merged successfully.");
+                alert("✅ Synchronization complete!");
             } catch (err) {
                 alert("❌ Sync failed. Please check your network and SheetDB URL.");
             } finally {
-                if (btn) btn.innerText = "🔄 Synchronize";
+                if (btn) btn.innerText = originalText;
             }
         }
 
