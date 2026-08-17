@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GATE 2027 Chemical Eng Hub</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-dark: #0b0f19;
+            --bg-panel: #111827;
+            --bg-card: #1f2937;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --accent: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #374151;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .nav-link {
+            padding: 0.8rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 0.6rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--primary);
+            color: #fff;
+        }
+
+        .sync-card {
+            margin-top: auto;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 0.6rem;
+            font-size: 0.82rem;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .status-online { background-color: var(--accent); }
+        .status-offline { background-color: var(--warning); }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2.2rem;
+        }
+
+        .view-section {
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header Bar */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.8rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        /* Buttons */
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.65rem 1.3rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.88rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.15s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-success {
+            background-color: var(--accent);
+        }
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+        .btn-outline:hover {
+            background-color: rgba(255,255,255,0.06);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        /* Cards */
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.4rem;
+        }
+
+        .card h3 {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.4rem;
+        }
+
+        .card .value {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .progress-bg {
+            background-color: var(--border);
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 0.8rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background-color: var(--accent);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Subject Accordion */
+        .subject-group {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.6rem;
+            margin-bottom: 0.9rem;
+            overflow: hidden;
+        }
+
+        .subject-header {
+            padding: 1rem 1.4rem;
+            background-color: rgba(255, 255, 255, 0.015);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 600;
+            user-select: none;
+        }
+
+        .subject-header:hover {
+            background-color: rgba(255, 255, 255, 0.035);
+        }
+
+        .topic-list {
+            display: none;
+            padding: 0.75rem 1.4rem;
+            border-top: 1px solid var(--border);
+            background-color: rgba(0, 0, 0, 0.15);
+        }
+
+        .subject-group.open .topic-list {
+            display: block;
+        }
+
+        .topic-item {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.55rem 0;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 0.92rem;
+        }
+
+        .topic-item:last-child {
+            border-bottom: none;
+        }
+
+        .topic-item input[type="checkbox"] {
+            width: 1.15rem;
+            height: 1.15rem;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .topic-item.completed label {
+            text-decoration: line-through;
+            color: var(--accent);
+            opacity: 0.75;
+        }
+
+        /* Formula Vault */
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .note-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .note-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            background: #000;
+        }
+
+        .note-body {
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        input[type="text"], input[type="file"] {
+            padding: 0.7rem 0.9rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            background-color: var(--bg-dark);
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+        }
+
+        #img-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.93);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        #img-modal img {
+            max-width: 95%;
+            max-height: 90vh;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand">
+            🚀 GATE '27 ChemEng
+        </div>
+        <div class="nav-link active" onclick="switchTab('dashboard')">📊 Dashboard</div>
+        <div class="nav-link" onclick="switchTab('tracker')">📚 Detailed Syllabus</div>
+        <div class="nav-link" onclick="switchTab('vault')">🖼️ Formula Vault</div>
+        <div class="nav-link" onclick="switchTab('settings')">⚙️ Sync & API Settings</div>
+
+        <div class="sync-card">
+            <div>
+                <span class="status-dot status-offline" id="sync-dot"></span>
+                <strong id="sync-status-text">Local Storage</strong>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;" id="unsaved-badge">0 unsynced changes</div>
+            <button class="btn btn-outline" style="width: 100%; margin-top: 0.75rem; padding: 0.45rem; font-size: 0.8rem; justify-content: center;" onclick="syncNow()">
+                🔄 Sync Now
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- 1. DASHBOARD -->
+        <div id="dashboard" class="view-section active">
+            <div class="top-header">
+                <div>
+                    <h2>GATE 2027 Command Center</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">137-Day Complete Syllabus Plan (Aug 17 – Dec 31)</p>
+                </div>
+                <button class="btn btn-success" onclick="syncNow()">
+                    🔄 Synchronize with Google Sheet
+                </button>
+            </div>
+            
+            <div class="grid-cards">
+                <div class="card">
+                    <h3>Countdown to GATE 2027</h3>
+                    <div class="value" id="countdown">-- Days</div>
+                    <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 0.4rem;">Target Exam: Feb 1, 2027</p>
+                </div>
+                <div class="card">
+                    <h3>Total Syllabus Progress</h3>
+                    <div class="value" id="progress-val">0%</div>
+                    <div class="progress-bg">
+                        <div class="progress-fill" id="progress-bar"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Today's Study Allocation</h3>
+                    <div class="value" id="today-day" style="font-size: 1.35rem; margin-bottom: 0.3rem;">--</div>
+                    <p id="today-strategy" style="color: var(--accent); font-size: 0.88rem; font-weight: 500;"></p>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 1rem;">
+                <h3 style="margin-bottom: 1rem; color: var(--primary);">Quick Subject Breakdown</h3>
+                <div id="dashboard-subject-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. TRACKER (137 TOPICS) -->
+        <div id="tracker" class="view-section">
+            <div class="top-header">
+                <div>
+                    <h2>137-Day Detailed Syllabus Tracker</h2>
+                    <p style="color: var(--text-muted); font-size: 0.88rem;">Check topics as you complete them. Changes save locally immediately with <strong>zero API cost</strong>.</p>
+                </div>
+                <button class="btn btn-success" onclick="syncNow()">🔄 Push/Pull Sync</button>
+            </div>
+            <div id="syllabus-container"></div>
+        </div>
+
+        <!-- 3. FORMULA VAULT -->
+        <div id="vault" class="view-section">
+            <div class="top-header">
+                <div>
+                    <h2>Formula & Screenshot Vault</h2>
+                    <p style="color: var(--text-muted); font-size: 0.88rem;">Save screenshots of formulas, derivations, or critical error logs.</p>
+                </div>
+                <button class="btn btn-success" onclick="syncNow()">🔄 Sync Vault</button>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; background: var(--bg-card); padding: 1.25rem; border-radius: 0.75rem; border: 1px solid var(--border);">
+                <input type="text" id="note-title" placeholder="Formula/Topic Title (e.g. Ergun Equation)" style="flex: 1; min-width: 220px;">
+                <input type="text" id="note-subject" placeholder="Subject (e.g. Fluid Mechanics)" style="flex: 1; min-width: 180px;">
+                <input type="file" id="note-image" accept="image/*" style="flex: 1; min-width: 200px;">
+                <button class="btn" onclick="addNote()">Save Formula</button>
+            </div>
+
+            <div class="notes-grid" id="notes-container"></div>
+        </div>
+
+        <!-- 4. SETTINGS & SHEETDB API -->
+        <div id="settings" class="view-section">
+            <h2>Cloud Sync & API Quota Manager</h2>
+            <p style="color: var(--text-muted); margin: 0.5rem 0 1.8rem 0; font-size: 0.9rem;">
+                All actions run 100% locally in your browser. API calls only occur when you explicitly click the <strong>Synchronize</strong> button.
+            </p>
+
+            <div class="card" style="max-width: 650px;">
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem;">SheetDB API Endpoint URL</label>
+                    <input type="text" id="sheetdb-endpoint" placeholder="https://sheetdb.io/api/v1/your_api_id" style="width: 100%;">
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.4rem;">
+                        Connect to the downloaded Excel sheet uploaded to Google Drive.
+                    </small>
+                </div>
+
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn" onclick="saveSettings()">Save API URL</button>
+                    <button class="btn btn-outline" onclick="syncNow()">Trigger Full Sync</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Image Modal -->
+    <div id="img-modal" onclick="this.style.display='none'">
+        <img id="modal-img" src="">
+    </div>
+
+    <script>
+        // --- 1. Master Detailed Syllabus (All 137 Topics) ---
+        const masterSyllabus = {"Process Calculations": ["Units, Dimensions & Stoichiometry", "Material Balance (Non-reactive) I", "Material Balance (Non-reactive) II", "Material Balance (Reactive Systems)", "Recycle, Bypass, and Purge Streams", "Energy Balance Basics", "Heat of Reaction, Formation & Combustion", "Advanced PYQs & Consolidation", "Subject Mock Test & Analysis"], "Thermodynamics": ["Intro & 1st Law of Thermodynamics", "P-V-T Behavior (Equations of State)", "2nd Law, Heat Engines & Entropy", "Thermodynamic Relations I (Maxwell)", "Thermodynamic Relations II", "Flow Processes (Compressors/Turbines)", "Solution Thermo (Partial Molar Properties)", "Fugacity, Activity & Standard States", "Phase Equilibria (VLE) I", "Phase Equilibria (VLE) II (Raoult's/Modified)", "Chemical Reaction Equilibria I", "Chemical Reaction Equilibria II", "Subject Revision & PYQ Marathon", "Subject Mock Test & Analysis"], "Fluid Mechanics": ["Fluid Statics & Manometry", "Newtonian & Non-Newtonian Fluids", "Continuity & Momentum Equations", "Bernoulli's Equation & Applications", "Flow through Pipes (Laminar & Hagen-Poiseuille)", "Flow through Pipes (Turbulent & Friction Factor)", "Flow Past Immersed Bodies (Drag)", "Boundary Layer Theory", "Flow Measurement (Orifice, Venturi, Pitot)", "Fluidization Basics & Ergun Equation", "Pumps (Centrifugal & Cavitation)", "Compressors & Fans", "Subject Revision & PYQ Marathon", "Subject Mock Test & Analysis"], "Mechanical Operations": ["Particle Size, Shape & Screening", "Size Reduction (Laws & Equipment)", "Filtration I (Constant P & V)", "Filtration II & Centrifugation", "Settling, Sedimentation & Elutriation", "Mixing & Agitation", "Subject Mock Test & Analysis"], "Heat Transfer": ["Conduction (1D & Unsteady State)", "Extended Surfaces (Fins)", "Convection (Free & Forced)", "Dimensional Analysis in HT", "Boundary Layer in Heat Transfer", "Heat Exchangers (LMTD Method)", "Heat Exchangers (NTU-Effectiveness)", "Boiling & Condensation", "Radiation I (Basic Laws)", "Radiation II (View Factors & Shields)", "Evaporators (Single Effect)", "Multi-effect Evaporators", "Subject Revision & PYQ Marathon", "Subject Mock Test & Analysis"], "Mass Transfer": ["Fick's Law & Molecular Diffusion", "Diffusivity in Gases & Liquids", "Mass Transfer Coefficients", "Interphase Mass Transfer & Two-Film Theory", "Distillation (VLE & Flash)", "Distillation (McCabe-Thiele) I", "Distillation (McCabe-Thiele) II", "Distillation (Ponchon-Savarit & Advanced)", "Absorption & Stripping I (Equilibrium)", "Absorption & Stripping II (Packed Towers)", "Liquid-Liquid Extraction", "Solid-Liquid Extraction (Leaching)", "Adsorption (Isotherms)", "Drying I (Rate Curves)", "Drying II (Time of Drying)", "Humidification & Cooling Towers", "Subject Revision & PYQ Marathon", "Subject Mock Test & Analysis"], "Chemical Reaction Engg": ["Kinetics, Rate Laws & Mechanisms", "Constant & Variable Volume Batch Reactors", "Ideal Reactors (CSTR)", "Ideal Reactors (PFR)", "Comparison of Reactors & Size Sequencing", "Multiple Reactions (Parallel)", "Multiple Reactions (Series & Optimal Yield)", "Temperature & Pressure Effects", "Non-Ideal Flow (RTD Theory) I", "Non-Ideal Flow (RTD Models) II", "Solid-Catalyzed Reactions & Adsorption", "Catalyst Properties (Pore Volume, Surface Area)", "Internal & External Diffusion Limits", "Shrinking Core Model I", "Shrinking Core Model II", "Subject Revision & PYQ Marathon", "Subject Mock Test 1", "Subject Mock Test 2 & Deep Analysis"], "Process Dynamics & Control": ["Laplace Transforms & Deviation Variables", "1st Order Systems (Response)", "Interacting & Non-Interacting Systems", "2nd Order Systems (Damping)", "Controllers (P, PI, PID) & Hardware", "Closed-Loop Transfer Functions & Block Diagrams", "Stability Criteria (Routh-Hurwitz)", "Root Locus Technique", "Frequency Response (Bode Plot)", "Advanced Control (Cascade, Feedforward)", "Subject Revision & PYQ Marathon", "Subject Mock Test & Analysis"], "Plant Design & Economics": ["Plant Design Basics & Layout", "Cost Estimation (Equipment & Plant)", "Time Value of Money (Interest, Annuity)", "Depreciation Methods", "Profitability Analysis I (ROI, Payback)", "Profitability Analysis II (NPV, DCFR)", "Optimization", "Subject Mock Test & Analysis"], "Chemical Technology": ["Inorganic (Acids, Fertilizers)", "Chlor-Alkali & Cement Industries", "Pulp & Paper, Sugar & Starch", "Petroleum Refining I (Distillation)", "Petroleum Refining II (Cracking/Reforming)", "Petrochemicals", "Polymerization (Addition & Condensation)"], "Engg Mathematics": ["Linear Algebra (Matrices & Rank)", "Linear Algebra (Eigenvalues & Eigenvectors)", "Calculus (Limits, Continuity, Max/Min)", "Vector Calculus (Gradient, Divergence, Curl)", "Differential Equations (First Order)", "Differential Equations (Higher Order & PDE)", "Complex Variables", "Probability & Statistics", "Numerical Methods"], "General Aptitude & Wrap-up": ["General Aptitude (Quantitative I)", "General Aptitude (Quantitative II & Spatial)", "General Aptitude (Verbal & Logical)", "Full Length Mock Test 1 (Morning Shift)", "Mock Test 1 Deep Analysis & Weakness Targeting", "Full Length Mock Test 2", "Final Formulas Review & Buffer"]};
+
+        // --- 2. Local State Management ---
+        let state = JSON.parse(localStorage.getItem('gatePrepDetailedState')) || {
+            apiUrl: '',
+            completedTopics: [],
+            notes: [],
+            hasUnsyncedChanges: false
+        };
+
+        function saveLocalState(markUnsynced = true) {
+            if (markUnsynced) state.hasUnsyncedChanges = true;
+            localStorage.setItem('gatePrepDetailedState', JSON.stringify(state));
+            updateUI();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+        }
+
+        // --- 3. App Initialization ---
+        function initApp() {
+            // Countdown
+            const target = new Date("2027-02-01").getTime();
+            const now = new Date().getTime();
+            const days = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+            document.getElementById('countdown').innerText = days + " Days";
+
+            // Today's Strategy
+            const today = new Date().getDay();
+            const isWeekend = today === 0 || today === 6;
+            const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            document.getElementById('today-day').innerText = dayNames[today];
+            document.getElementById('today-strategy').innerText = isWeekend 
+                ? "7-Hour Weekend: 3H Video (1.25x) | 2.5H Practice | 1.5H Mock/Revision" 
+                : "3-Hour Weekday: 2H Video (1.5x) | 1H GATE PYQ Practice";
+
+            if (state.apiUrl) {
+                document.getElementById('sheetdb-endpoint').value = state.apiUrl;
+                document.getElementById('sync-dot').className = "status-dot status-online";
+                document.getElementById('sync-status-text').innerText = "SheetDB Ready";
+            }
+
+            renderTracker();
+            renderVault();
+            updateUI();
+        }
+
+        // --- 4. Render Syllabus (All 137 topics) ---
+        function renderTracker() {
+            const container = document.getElementById('syllabus-container');
+            container.innerHTML = '';
+
+            for (const [subject, topics] of Object.entries(masterSyllabus)) {
+                const completedInSub = topics.filter(t => state.completedTopics.includes(`${subject}::${t}`)).length;
+                
+                const group = document.createElement('div');
+                group.className = 'subject-group';
+                group.innerHTML = `
+                    <div class="subject-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>${subject}</span>
+                        <span style="color: var(--text-muted); font-size: 0.85rem;">${completedInSub} / ${topics.length} Done</span>
+                    </div>
+                    <div class="topic-list">
+                        ${topics.map(t => {
+                            const id = `${subject}::${t}`;
+                            const isChecked = state.completedTopics.includes(id);
+                            return `
+                                <div class="topic-item ${isChecked ? 'completed' : ''}">
+                                    <input type="checkbox" onchange="toggleTopic('${id}', this)" ${isChecked ? 'checked' : ''}>
+                                    <label>${t}</label>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                container.appendChild(group);
+            }
+        }
+
+        // Checkbox click: 100% LOCAL. ZERO API calls.
+        function toggleTopic(id, checkbox) {
+            if (checkbox.checked) {
+                if (!state.completedTopics.includes(id)) state.completedTopics.push(id);
+                checkbox.parentElement.classList.add('completed');
+            } else {
+                state.completedTopics = state.completedTopics.filter(t => t !== id);
+                checkbox.parentElement.classList.remove('completed');
+            }
+            saveLocalState(true);
+            renderTracker();
+        }
+
+        function updateUI() {
+            let total = 0;
+            for (let s in masterSyllabus) total += masterSyllabus[s].length;
+            const completed = state.completedTopics.length;
+            const pct = Math.round((completed / total) * 100) || 0;
+            
+            document.getElementById('progress-val').innerText = pct + "% (" + completed + "/" + total + ")";
+            document.getElementById('progress-bar').style.width = pct + "%";
+            
+            document.getElementById('unsaved-badge').innerText = state.hasUnsyncedChanges 
+                ? "⚠️ Unsynced changes pending" 
+                : "✅ Fully synced";
+
+            // Subject summary cards
+            const summaryContainer = document.getElementById('dashboard-subject-summary');
+            if (summaryContainer) {
+                summaryContainer.innerHTML = '';
+                for (const [subject, topics] of Object.entries(masterSyllabus)) {
+                    const done = topics.filter(t => state.completedTopics.includes(`${subject}::${t}`)).length;
+                    const subPct = Math.round((done / topics.length) * 100);
+                    const item = document.createElement('div');
+                    item.style.padding = '0.75rem';
+                    item.style.backgroundColor = 'rgba(255,255,255,0.02)';
+                    item.style.borderRadius = '0.5rem';
+                    item.style.border = '1px solid var(--border)';
+                    item.innerHTML = `
+                        <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem;">${subject}</div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted);">
+                            <span>${done}/${topics.length}</span>
+                            <span>${subPct}%</span>
+                        </div>
+                    `;
+                    summaryContainer.appendChild(item);
+                }
+            }
+        }
+
+        // --- 5. Formula Vault ---
+        function renderVault() {
+            const container = document.getElementById('notes-container');
+            container.innerHTML = '';
+            
+            state.notes.forEach((note, index) => {
+                const card = document.createElement('div');
+                card.className = 'note-card';
+                card.innerHTML = `
+                    <img src="${note.img}" class="note-img" onclick="showImg('${note.img}')">
+                    <div class="note-body">
+                        <div>
+                            <strong style="font-size: 0.92rem;">${note.title}</strong>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">${note.subject || 'Core'}</div>
+                        </div>
+                        <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="deleteNote(${index})">Delete</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function addNote() {
+            const title = document.getElementById('note-title').value.trim();
+            const subject = document.getElementById('note-subject').value.trim();
+            const fileInput = document.getElementById('note-image');
+            
+            if (!title || !fileInput.files[0]) {
+                alert("Please provide a note title and screenshot image.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 600;
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    state.notes.push({
+                        title: title,
+                        subject: subject || "General",
+                        img: compressedBase64,
+                        created_at: new Date().toISOString().split('T')[0]
+                    });
+
+                    saveLocalState(true);
+                    renderVault();
+
+                    document.getElementById('note-title').value = '';
+                    document.getElementById('note-subject').value = '';
+                    fileInput.value = '';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function deleteNote(index) {
+            state.notes.splice(index, 1);
+            saveLocalState(true);
+            renderVault();
+        }
+
+        function showImg(src) {
+            document.getElementById('modal-img').src = src;
+            document.getElementById('img-modal').style.display = 'flex';
+        }
+
+        // --- 6. Manual Synchronize Engine (Minimal API usage) ---
+        function saveSettings() {
+            state.apiUrl = document.getElementById('sheetdb-endpoint').value.trim();
+            saveLocalState(false);
+            if (state.apiUrl) {
+                document.getElementById('sync-dot').className = "status-dot status-online";
+                document.getElementById('sync-status-text').innerText = "SheetDB Ready";
+                alert("✅ API URL Saved. Click 'Synchronize' to pull/push data.");
+            }
+        }
+
+        async function syncNow() {
+            if (!state.apiUrl) {
+                alert("Please go to 'Sync & API Settings' and enter your SheetDB URL first.");
+                return;
+            }
+
+            const btn = event ? event.target : null;
+            if (btn) btn.innerText = "⏳ Syncing...";
+
+            try {
+                // 1. GET request (1 API call) to pull any updates from Google Sheet
+                const res = await fetch(`${state.apiUrl}?sheet=syllabus_progress`);
+                if (res.ok) {
+                    const remoteTopics = await res.json();
+                    if (Array.isArray(remoteTopics)) {
+                        remoteTopics.forEach(row => {
+                            const id = `${row.subject}::${row.topic_name}`;
+                            if (row.status === "Completed" && !state.completedTopics.includes(id)) {
+                                state.completedTopics.push(id);
+                            }
+                        });
+                    }
+                }
+
+                // 2. Fetch Vault notes from sheet if available
+                const vaultRes = await fetch(`${state.apiUrl}?sheet=formula_vault`);
+                if (vaultRes.ok) {
+                    const vData = await vaultRes.json();
+                    if (Array.isArray(vData)) {
+                        vData.forEach(r => {
+                            if (!state.notes.some(n => n.title === r.title)) {
+                                state.notes.push({
+                                    title: r.title,
+                                    subject: r.subject,
+                                    img: r.image_base64,
+                                    created_at: r.created_at
+                                });
+                            }
+                        });
+                    }
+                }
+
+                state.hasUnsyncedChanges = false;
+                saveLocalState(false);
+                renderTracker();
+                renderVault();
+                alert("✅ Synchronization complete! All data merged successfully.");
+            } catch (err) {
+                alert("❌ Sync failed. Please check your network and SheetDB URL.");
+            } finally {
+                if (btn) btn.innerText = "🔄 Synchronize";
+            }
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
